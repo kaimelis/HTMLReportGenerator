@@ -116,8 +116,6 @@ namespace HTMLReportGenerator
             return html.ToString();
         }
 
-
-
         private string GeneratePrintableView(TestFixture fixture)
         {
             StringBuilder html = new StringBuilder();
@@ -220,13 +218,12 @@ namespace HTMLReportGenerator
             html.AppendLine("<button type=\"button\" class=\"btn btn-primary\" data-dismiss=\"modal\">Close</button>");
             html.AppendLine("</div>");
             html.AppendLine("</div>");
+            html.AppendLine("<div class=\"ui-resizable-handle ui-resizable-se\"></div>");
             html.AppendLine("</div>");
             html.AppendLine("</div>");
 
             return html.ToString();
         }
-
-
 
         private string GenerateHtmlTables(Dictionary<string, Dictionary<string, Dictionary<string, string>>> data, string modalId)
         {
@@ -261,8 +258,9 @@ namespace HTMLReportGenerator
             if (data == null || data.Count == 0) return string.Empty;
 
             var html = new StringBuilder();
-            html.AppendLine("<table class='table table-bordered'>");
-            html.AppendLine("<thead><tr><th>Value</th><th>Before</th><th>After</th></tr></thead>");
+            html.AppendLine("<div class=\"table-responsive\">");
+            html.AppendLine("<table class='table table-bordered equal-width-columns'>");
+            html.AppendLine("<thead><tr><th class='col-value'>Value</th><th class='col-before'>Before</th><th class='col-after'>After</th></tr></thead>");
             html.AppendLine("<tbody>");
 
             var allKeys = data["before"].Keys.Union(data["after"].Keys).Distinct();
@@ -276,6 +274,7 @@ namespace HTMLReportGenerator
             }
 
             html.AppendLine("</tbody></table>");
+            html.AppendLine("</div>");
             return html.ToString();
         }
 
@@ -328,41 +327,15 @@ namespace HTMLReportGenerator
             header.AppendLine("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1\" />"); // Set for mobile
             header.AppendLine(string.Format("    <title>{0}</title>", title));
 
-            // Add custom scripts
-            //header.AppendLine("    <script>");
 
             header.AppendLine("<script src=\"https://code.jquery.com/jquery-3.6.0.min.js\"></script>");
-            // Include Bootstrap JS
+            header.AppendLine("<script src=\"https://code.jquery.com/ui/1.12.1/jquery-ui.min.js\"></script>");
             header.AppendLine("<script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js\"></script>");
 
-            // Include jQuery in the page
-          //  header.AppendLine(Properties.Resources.jQuery);
-          //  header.AppendLine("    </script>");
-         //   header.AppendLine("    <script>");
-
-            // Include Bootstrap in the page
-           // header.AppendLine(Properties.Resources.BootstrapJS);
-           // header.AppendLine("    </script>");
-            header.AppendLine("    <script type=\"text/javascript\">");
-            header.AppendLine("    $(document).ready(function() { ");
-            header.AppendLine("        $('[data-toggle=\"tooltip\"]').tooltip({'placement': 'bottom'});");
-
-            // Add filtering functionality
-            header.AppendLine("        $('.btn-group input[type=\"radio\"]').change(function() {");
-            header.AppendLine("            var selectedFilter = $(this).parent().text().trim().toLowerCase();");
-            header.AppendLine("            if (selectedFilter === 'all') {");
-            header.AppendLine("                $('.fixture-panel').show();");
-            header.AppendLine("            } else if (selectedFilter === 'failed') {");
-            header.AppendLine("                $('.fixture-panel').hide();");
-            header.AppendLine("                $('.failed-fixture').show();");
-            header.AppendLine("            } else if (selectedFilter === 'success') {");
-            header.AppendLine("                $('.fixture-panel').hide();");
-            header.AppendLine("                $('.success-fixture').show();");
-            header.AppendLine("            }");
-            header.AppendLine("        });");
-
-            header.AppendLine("    });");
-            header.AppendLine("    </script>");
+            string projectDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            string jsFilePath = Path.Combine(projectDirectory, "ReportScripts.js");
+            string jsContent = File.ReadAllText(jsFilePath);
+            header.AppendLine($"<script>{jsContent}</script>");
 
             // Add custom styles
             header.AppendLine("    <style>");
@@ -371,7 +344,6 @@ namespace HTMLReportGenerator
             header.AppendLine("    .panel-title a:hover, .panel-title a:focus { text-decoration: none; }");
             header.AppendLine("    .panel-heading { padding: 0; }");
 
-            string projectDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
             // Specify the relative path to the Bootstrap.css file
             string bootstrapFilePath = Path.Combine(projectDirectory, "BootstrapCSS.css");
