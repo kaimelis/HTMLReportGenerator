@@ -17,7 +17,7 @@ namespace HTMLReportGenerator
             {
                 Name = doc.Attribute("name").Value,
                 TotalTests = int.Parse(!string.IsNullOrEmpty(doc.Attribute("total").Value) ? doc.Attribute("total").Value : "0"),
-                Errors = int.Parse(!string.IsNullOrEmpty(doc.Attribute("errors").Value) ? doc.Attribute("errors").Value : "0"),
+                Errors = int.Parse(!string.IsNullOrEmpty(doc.Attribute("failures").Value) ? doc.Attribute("failures").Value : "0"),
                 Date = DateTime.Parse(string.Format("{0}", doc.Attribute("date").Value)),
                 Version = doc.Attribute("version").Value,
                 Fixtures = ParseFixtures(doc.Descendants("test-suite").Where(x => x.Attribute("type").Value == "Test"))

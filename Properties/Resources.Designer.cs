@@ -59,32 +59,5 @@ namespace HTMLReportGenerator.Properties {
                 resourceCulture = value;
             }
         }
-
-        /// <summary>
-        ///   Looks up a localized string similar to .
-        /// </summary>
-        internal static string BootstrapCSS {
-            get {
-                return ResourceManager.GetString("BootstrapCSS", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to .
-        /// </summary>
-        internal static string BootstrapJS {
-            get {
-                return ResourceManager.GetString("BootstrapJS", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to .
-        /// </summary>
-        internal static string jQuery {
-            get {
-                return ResourceManager.GetString("jQuery", resourceCulture);
-            }
-        }
     }
 }

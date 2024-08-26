@@ -71,35 +71,52 @@ namespace HTMLReportGenerator
 
             foreach (var fixture in fixtures)
             {
+                string sanitizedName = SanitizeIdName(fixture.Name);
+                string modalId = $"modal-{sanitizedName}-{index}";
+
                 html.AppendLine($"<div class=\"col-md-3 fixture-panel {(fixture.Result.ToLower() == "success" ? "success-fixture" : "failed-fixture")}\">");
-                html.AppendLine("<div class=\"panel " + GetPanelClass(fixture.Result) + "\">");
+                html.AppendLine($"<div class=\"panel {GetPanelClass(fixture.Result)}\" style=\"cursor: pointer;\" data-toggle=\"modal\" data-target=\"#{modalId}\">");
+
                 html.AppendLine("<div class=\"panel-heading\">");
-                html.AppendLine($"{fixture.Name} - <small>{fixture.Namespace}</small><small class=\"pull-right\">{fixture.Time}</small>");
+                html.AppendLine("<div class=\"row\">");
+                html.AppendLine("<div class=\"col-xs-9\">");
+                html.AppendLine($"<strong class=\"fixture-name\">{fixture.Name}</strong>");
                 html.AppendLine($"<br><small>{fixture.FailedTests}/{fixture.TotalTests} failed</small>");
+                html.AppendLine("</div>");
+                html.AppendLine("<div class=\"col-xs-3 text-right\">");
+                html.AppendLine($"<span class=\"fixture-time\">{fixture.Time}</span>");
+                html.AppendLine("</div>");
+                html.AppendLine("</div>");
+
+                // Move content from panel body to panel heading
+                html.AppendLine("<div class=\"text-center\" style=\"font-size: 1.5em; margin-top: 2px;\">");
+                html.AppendLine("</div>");
 
                 if (!string.IsNullOrEmpty(fixture.Reason))
                 {
-                    html.AppendLine($"<span class=\"glyphicon glyphicon-info-sign pull-right info hidden-print\" data-toggle=\"tooltip\" title=\"{HttpUtility.HtmlEncode(fixture.Reason)}\"></span>");
+                    html.AppendLine($"<div class=\"reason-text\" data-toggle=\"tooltip\" title=\"{HttpUtility.HtmlEncode(fixture.Reason)}\">");
+                    html.AppendLine($"<small><strong>Reason:</strong> {HttpUtility.HtmlEncode(fixture.Reason)}</small>");
+                    html.AppendLine("</div>");
                 }
 
-                html.AppendLine("</div>");
-                html.AppendLine("<div class=\"panel-body\">");
+                html.AppendLine("</div>"); // End of Panel Heading
 
-                string modalId = $"modal-{HttpUtility.UrlEncode(fixture.Name)}-{index++}";
-                html.AppendLine("<div class=\"text-center\" style=\"font-size: 1.5em;\">");
-                html.AppendLine(GenerateResultLink(fixture.Result, modalId));
-                html.AppendLine("</div>");
+                // Empty panel body
+                html.AppendLine("<div class=\"panel-body\"></div>");
+
+                html.AppendLine("</div>"); // End of Panel
 
                 html.AppendLine(GeneratePrintableView(fixture));
                 html.AppendLine(GenerateFixtureModal(fixture, modalId));
 
                 html.AppendLine("</div>");
-                html.AppendLine("</div>");
-                html.AppendLine("</div>");
+                index++;
             }
 
             return html.ToString();
         }
+
+
 
         private string GeneratePrintableView(TestFixture fixture)
         {
@@ -161,28 +178,29 @@ namespace HTMLReportGenerator
             int i = 0;
             foreach (var testCase in fixture.TestCases)
             {
+                string testCaseId = System.Text.RegularExpressions.Regex.Replace(testCase.Name, @"[^a-zA-Z0-9]", "") + "-" + i;
                 string name = testCase.Name.Substring(testCase.Name.LastIndexOf('.') + 1);
 
                 html.AppendLine($"<div class=\"panel {GetPanelClass(testCase.Result)}\">");
                 html.AppendLine("<div class=\"panel-heading\">");
                 html.AppendLine("<h4 class=\"panel-title\">");
-                html.AppendLine($"<a data-toggle=\"collapse\" data-parent=\"#{modalId}-accordion\" href=\"#{modalId}-accordion-{i}\">{HttpUtility.HtmlEncode(name)}</a>");
+                html.AppendLine($"<a data-toggle=\"collapse\" data-parent=\"#{modalId}-accordion\" href=\"#{modalId}-accordion-{testCaseId}\">{HttpUtility.HtmlEncode(name)}</a>");
                 html.AppendLine("</h4>");
                 html.AppendLine("</div>");
-                html.AppendLine($"<div id=\"{modalId}-accordion-{i}\" class=\"panel-collapse collapse\">");
+                html.AppendLine($"<div id=\"{modalId}-accordion-{testCaseId}\" class=\"panel-collapse collapse\">");
                 html.AppendLine("<div class=\"panel-body\">");
 
-                html.AppendLine(GenerateHtmlTables(testCase.Data, $"{modalId}-{i}"));
+                html.AppendLine(GenerateHtmlTables(testCase.Data, $"{modalId}-{testCaseId}"));
 
                 if (!string.IsNullOrEmpty(testCase.FailureMessage))
                 {
                     html.AppendLine("<div class=\"panel panel-danger\">");
                     html.AppendLine("<div class=\"panel-heading\">");
                     html.AppendLine("<h4 class=\"panel-title\">");
-                    html.AppendLine($"<a data-toggle=\"collapse\" href=\"#{modalId}-stacktrace-{i}\">Error Details</a>");
+                    html.AppendLine($"<a data-toggle=\"collapse\" href=\"#{modalId}-stacktrace-{testCaseId}\">Error Details</a>");
                     html.AppendLine("</h4>");
                     html.AppendLine("</div>");
-                    html.AppendLine($"<div id=\"{modalId}-stacktrace-{i}\" class=\"panel-collapse collapse\">");
+                    html.AppendLine($"<div id=\"{modalId}-stacktrace-{testCaseId}\" class=\"panel-collapse collapse\">");
                     html.AppendLine("<div class=\"panel-body\">");
                     html.AppendLine($"<pre>{HttpUtility.HtmlEncode(testCase.FailureMessage)}</pre>");
                     html.AppendLine("</div>");
@@ -207,6 +225,8 @@ namespace HTMLReportGenerator
 
             return html.ToString();
         }
+
+
 
         private string GenerateHtmlTables(Dictionary<string, Dictionary<string, Dictionary<string, string>>> data, string modalId)
         {
@@ -261,21 +281,22 @@ namespace HTMLReportGenerator
 
         private string GenerateResultLink(string result, string modalId)
         {
+            return  "";
             StringBuilder html = new StringBuilder();
             switch (result.ToLower())
             {
                 case "success":
-                    html.AppendLine($"<a href=\"#{modalId}\" role=\"button\" data-toggle=\"modal\" class=\"text-success no-underline\">");
-                    html.AppendLine("<span class=\"glyphicon glyphicon-ok-sign\"></span>");
+                    html.AppendLine("<span class=\"text-success\">");
+                   // html.AppendLine("<span class=\"glyphicon glyphicon-ok-sign\"></span>");
                     html.AppendLine("<span class=\"test-result\">Success</span>");
-                    html.AppendLine("</a>");
+                    html.AppendLine("</span>");
                     break;
                 case "failure":
                 case "error":
-                    html.AppendLine($"<a href=\"#{modalId}\" role=\"button\" data-toggle=\"modal\" class=\"text-danger no-underline\">");
-                    html.AppendLine("<span class=\"glyphicon glyphicon-exclamation-sign\"></span>");
+                    html.AppendLine("<span class=\"text-danger\">");
+                  //  html.AppendLine("<span class=\"glyphicon glyphicon-exclamation-sign\"></span>");
                     html.AppendLine("<span class=\"test-result\">Failed</span>");
-                    html.AppendLine("</a>");
+                    html.AppendLine("</span>");
                     break;
                 default:
                     break;
@@ -297,7 +318,7 @@ namespace HTMLReportGenerator
             }
         }
 
-        private static string GetHTML5Header(string title)
+        private string GetHTML5Header(string title)
         {
             StringBuilder header = new StringBuilder();
             header.AppendLine("<!doctype html>");
@@ -308,16 +329,20 @@ namespace HTMLReportGenerator
             header.AppendLine(string.Format("    <title>{0}</title>", title));
 
             // Add custom scripts
-            header.AppendLine("    <script>");
+            //header.AppendLine("    <script>");
+
+            header.AppendLine("<script src=\"https://code.jquery.com/jquery-3.6.0.min.js\"></script>");
+            // Include Bootstrap JS
+            header.AppendLine("<script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js\"></script>");
 
             // Include jQuery in the page
-            header.AppendLine(Properties.Resources.jQuery);
-            header.AppendLine("    </script>");
-            header.AppendLine("    <script>");
+          //  header.AppendLine(Properties.Resources.jQuery);
+          //  header.AppendLine("    </script>");
+         //   header.AppendLine("    <script>");
 
             // Include Bootstrap in the page
-            header.AppendLine(Properties.Resources.BootstrapJS);
-            header.AppendLine("    </script>");
+           // header.AppendLine(Properties.Resources.BootstrapJS);
+           // header.AppendLine("    </script>");
             header.AppendLine("    <script type=\"text/javascript\">");
             header.AppendLine("    $(document).ready(function() { ");
             header.AppendLine("        $('[data-toggle=\"tooltip\"]').tooltip({'placement': 'bottom'});");
@@ -346,8 +371,15 @@ namespace HTMLReportGenerator
             header.AppendLine("    .panel-title a:hover, .panel-title a:focus { text-decoration: none; }");
             header.AppendLine("    .panel-heading { padding: 0; }");
 
+            string projectDirectory = AppDomain.CurrentDomain.BaseDirectory;
+
+            // Specify the relative path to the Bootstrap.css file
+            string bootstrapFilePath = Path.Combine(projectDirectory, "BootstrapCSS.css");
+
+            // Read the content of the Bootstrap.css file
+            string bootstrapCssContent = File.ReadAllText(bootstrapFilePath);
             // Include Bootstrap CSS in the page
-            header.AppendLine(Properties.Resources.BootstrapCSS);
+            header.AppendLine(bootstrapCssContent);
             header.AppendLine("    .page { margin: 15px 0; }");
             header.AppendLine("    .no-bottom-margin { margin-bottom: 0; }");
             header.AppendLine("    .printed-test-result { margin-top: 15px; }");
@@ -368,13 +400,25 @@ namespace HTMLReportGenerator
             return header.ToString();
         }
 
-        private static string GetHTML5Footer()
+        private string GetHTML5Footer()
         {
             StringBuilder footer = new StringBuilder();
             footer.AppendLine("  </body>");
             footer.AppendLine("</html>");
 
             return footer.ToString();
+        }
+
+        private string SanitizeIdName(string name)
+        {
+            // Remove any characters that are not alphanumeric, underscore, or hyphen
+            string sanitized = System.Text.RegularExpressions.Regex.Replace(name, @"[^\w-]", "_");
+            // Ensure the ID doesn't start with a number
+            if (char.IsDigit(sanitized[0]))
+            {
+                sanitized = "_" + sanitized;
+            }
+            return sanitized;
         }
     }
 }

@@ -9,9 +9,9 @@ internal class Program
 
     static void Main(string[] args)
     {
-        var generator = new TestResultsGenerator();
-        XDocument generatedTest = generator.GenerateTestResults(500); // Generate results with at least 100 test suites
-        generatedTest.Save("LargeTestResults.xml");
+      /*  var generator = new TestResultsGenerator();
+        XDocument generatedTest = generator.GenerateTestResults(10); // Generate results with at least 100 test suites
+        generatedTest.Save("LargeTestResults.xml");*/
 
         var fileHandler = new FileHandler();
         var htmlGenerator = new HtmlGenerator();
@@ -19,7 +19,7 @@ internal class Program
 
         if (args.Length == 0)
         {
-            args = new string[] { "LargeTestResults.xml" };
+            args = new string[] { "Results.xml" };
         }
 
         if (args.Length == 1 || args.Length == 2)
