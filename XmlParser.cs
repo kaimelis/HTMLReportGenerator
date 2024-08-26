@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -58,11 +59,7 @@ namespace HTMLReportGenerator
 
         private Dictionary<string, Dictionary<string, Dictionary<string, string>>> ParseXmlData(XElement testCase)
         {
-            var data = new Dictionary<string, Dictionary<string, Dictionary<string, string>>>
-            {
-                ["General"] = new Dictionary<string, Dictionary<string, string>>(),
-                ["EstimateTime"] = new Dictionary<string, Dictionary<string, string>>()
-            };
+            var data = new Dictionary<string, Dictionary<string, Dictionary<string, string>>>();
 
             var reason = testCase.Element("reason");
             if (reason != null)
@@ -70,14 +67,55 @@ namespace HTMLReportGenerator
                 var before = ParseCDataSection(reason.Element("before").Value);
                 var after = ParseCDataSection(reason.Element("after").Value);
 
-                data["General"]["before"] = before.Where(kvp => !kvp.Key.Contains("Time")).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-                data["General"]["after"] = after.Where(kvp => !kvp.Key.Contains("Time")).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                var tableNames = FindTableNames(before);
 
-                data["EstimateTime"]["before"] = before.Where(kvp => kvp.Key.Contains("Time") || kvp.Key.Contains("Length")).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-                data["EstimateTime"]["after"] = after.Where(kvp => kvp.Key.Contains("Time") || kvp.Key.Contains("Length")).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                foreach (var tableName in tableNames)
+                {
+                    data[tableName] = new Dictionary<string, Dictionary<string, string>>
+                    {
+                        ["before"] = ExtractTableData(before, tableName),
+                        ["after"] = ExtractTableData(after, tableName)
+                    };
+                }
             }
 
             return data;
+        }
+
+        private List<string> FindTableNames(Dictionary<string, string> data)
+        {
+            return data.Keys
+                .Where(key => key.StartsWith("##") && key.EndsWith("##"))
+                .Select(key => key.Trim('#').Trim())
+                .ToList();
+        }
+
+        private Dictionary<string, string> ExtractTableData(Dictionary<string, string> data, string tableName)
+        {
+            var result = new Dictionary<string, string>();
+            bool inTable = false;
+
+            foreach (var kvp in data)
+            {
+                // Use regex to match ##tableName## with or without spaces
+                if (System.Text.RegularExpressions.Regex.IsMatch(kvp.Key, @"^##\s*" + Regex.Escape(tableName) + @"\s*##$"))
+                {
+                    inTable = true;
+                    continue;
+                }
+
+                if (inTable)
+                {
+                    // Check if we've reached the next table
+                    if (System.Text.RegularExpressions.Regex.IsMatch(kvp.Key, @"^##.*##$"))
+                    {
+                        break;
+                    }
+                    result[kvp.Key] = kvp.Value;
+                }
+            }
+
+            return result;
         }
 
         private Dictionary<string, string> ParseCDataSection(string cdata)
@@ -91,6 +129,11 @@ namespace HTMLReportGenerator
                 if (parts.Length == 2)
                 {
                     result[parts[0].Trim()] = parts[1].Trim();
+                }
+                else if (parts.Length == 1 && parts[0].Trim().StartsWith("##") && parts[0].Trim().EndsWith("##"))
+                {
+                    // This is a table name
+                    result[parts[0].Trim()] = string.Empty;
                 }
             }
 

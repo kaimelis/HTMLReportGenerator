@@ -182,7 +182,7 @@ namespace HTMLReportGenerator
                 html.AppendLine($"<div class=\"panel {GetPanelClass(testCase.Result)}\">");
                 html.AppendLine("<div class=\"panel-heading\">");
                 html.AppendLine("<h4 class=\"panel-title\">");
-                html.AppendLine($"<a data-toggle=\"collapse\" data-parent=\"#{modalId}-accordion\" href=\"#{modalId}-accordion-{testCaseId}\">{HttpUtility.HtmlEncode(name)}</a>");
+                html.AppendLine($"<a data-toggle=\"collapse\" data-parent=\"#{modalId}-accordion\" href=\"#{modalId}-accordion-{testCaseId}\"><strong>{HttpUtility.HtmlEncode(name)}</strong></a>");
                 html.AppendLine("</h4>");
                 html.AppendLine("</div>");
                 html.AppendLine($"<div id=\"{modalId}-accordion-{testCaseId}\" class=\"panel-collapse collapse\">");
@@ -275,31 +275,6 @@ namespace HTMLReportGenerator
 
             html.AppendLine("</tbody></table>");
             html.AppendLine("</div>");
-            return html.ToString();
-        }
-
-        private string GenerateResultLink(string result, string modalId)
-        {
-            return  "";
-            StringBuilder html = new StringBuilder();
-            switch (result.ToLower())
-            {
-                case "success":
-                    html.AppendLine("<span class=\"text-success\">");
-                   // html.AppendLine("<span class=\"glyphicon glyphicon-ok-sign\"></span>");
-                    html.AppendLine("<span class=\"test-result\">Success</span>");
-                    html.AppendLine("</span>");
-                    break;
-                case "failure":
-                case "error":
-                    html.AppendLine("<span class=\"text-danger\">");
-                  //  html.AppendLine("<span class=\"glyphicon glyphicon-exclamation-sign\"></span>");
-                    html.AppendLine("<span class=\"test-result\">Failed</span>");
-                    html.AppendLine("</span>");
-                    break;
-                default:
-                    break;
-            }
             return html.ToString();
         }
 
