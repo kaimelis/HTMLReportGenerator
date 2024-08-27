@@ -11,8 +11,6 @@ $(document).ready(function() {
     });
 
     function applyFilterAndSearch() {
-        var filter = currentSearch.toLowerCase();
-        
         // Apply filter and search to fixture panels
         $('.fixture-panel').each(function() {
             var panel = $(this);
@@ -24,17 +22,7 @@ $(document).ready(function() {
                 (currentFilter === 'success' && panel.hasClass('success-fixture'))) {
                 
                 // If panel passes the filter, check if it matches the search
-                var fixtureName = panel.find('.fixture-name').text().toLowerCase();
-                shouldShow = fixtureName.indexOf(filter) > -1;
-                
-                if (!shouldShow) {
-                    panel.find('.searchable-content').each(function() {
-                        if ($(this).text().toLowerCase().indexOf(filter) > -1) {
-                            shouldShow = true;
-                            return false; // break the loop
-                        }
-                    });
-                }
+                shouldShow = searchForRecipePath(panel);
             }
             
             panel.toggle(shouldShow);
@@ -51,21 +39,36 @@ $(document).ready(function() {
                 (currentFilter === 'success' && panel.data('test-result') === 'success')) {
                 
                 // If panel passes the filter, check if it matches the search
-                var testCaseName = panel.find('.panel-title').text().toLowerCase();
-                shouldShow = testCaseName.indexOf(filter) > -1;
-                
-                if (!shouldShow) {
-                    panel.find('.searchable-content').each(function() {
-                        if ($(this).text().toLowerCase().indexOf(filter) > -1) {
-                            shouldShow = true;
-                            return false; // break the loop
-                        }
-                    });
-                }
+                shouldShow = searchForRecipePath(panel);
             }
             
             panel.toggle(shouldShow);
         });
+    }
+
+    function searchForRecipePath(panel) {
+        if (currentSearch === '') return true;
+
+        var generalSection = panel.find('.panel-title:contains("General")').closest('.panel-default');
+        if (generalSection.length === 0) return false;
+
+        var found = false;
+        generalSection.find('table').each(function() {
+            var table = $(this);
+            var recipePathRow = table.find('tr').filter(function() {
+                return $(this).find('td:first').text().trim() === 'Recipe Path';
+            });
+
+            if (recipePathRow.length > 0) {
+                var recipePathValue = recipePathRow.find('td:nth-child(2)').text().toLowerCase();
+                if (recipePathValue.indexOf(currentSearch.toLowerCase()) > -1) {
+                    found = true;
+                    return false; // Break the .each() loop
+                }
+            }
+        });
+
+        return found;
     }
 
     // Make modals resizable
@@ -150,5 +153,4 @@ $(document).ready(function() {
 
     // Call the initialization function when the page loads
     initializeErrorListPanel();
-
 });
