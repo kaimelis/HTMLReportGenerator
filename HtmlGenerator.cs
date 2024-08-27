@@ -22,6 +22,13 @@ namespace HTMLReportGenerator
         {
             StringBuilder html = new StringBuilder();
             html.AppendLine("<div class=\"container-fluid page\">");
+
+            html.AppendLine("<div class=\"row\">");
+            html.AppendLine("<div class=\"col-md-12\">");
+            html.AppendLine("<input type=\"text\" id=\"searchBar\" class=\"form-control\" placeholder=\"Search by fixture or test name...\" onkeyup=\"searchInPage()\">");
+            html.AppendLine("</div>");
+            html.AppendLine("</div>");
+
             html.AppendLine(GenerateSummaryPanel(testResults));
             html.Append(GenerateFixtures(testResults.Fixtures));
             html.AppendLine("</div>");
@@ -170,19 +177,18 @@ namespace HTMLReportGenerator
 
             if (!string.IsNullOrEmpty(fixture.Reason))
             {
-                html.AppendLine($"<div class=\"alert alert-warning\"><strong>Warning:</strong> {HttpUtility.HtmlEncode(fixture.Reason)}</div>");
+                html.AppendLine($"<div class=\"alert alert-warning\"><strong>Warning:</strong> <span class=\"searchable-content\">{HttpUtility.HtmlEncode(fixture.Reason)}</span></div>");
             }
 
-            int i = 0;
             foreach (var testCase in fixture.TestCases)
             {
-                string testCaseId = System.Text.RegularExpressions.Regex.Replace(testCase.Name, @"[^a-zA-Z0-9]", "") + "-" + i;
+                string testCaseId = SanitizeIdName(testCase.Name);
                 string name = testCase.Name.Substring(testCase.Name.LastIndexOf('.') + 1);
 
-                html.AppendLine($"<div class=\"panel {GetPanelClass(testCase.Result)}\">");
+                html.AppendLine($"<div class=\"panel {GetPanelClass(testCase.Result)} test-case-panel\" data-test-result=\"{testCase.Result.ToLower()}\">");
                 html.AppendLine("<div class=\"panel-heading\">");
                 html.AppendLine("<h4 class=\"panel-title\">");
-                html.AppendLine($"<a data-toggle=\"collapse\" data-parent=\"#{modalId}-accordion\" href=\"#{modalId}-accordion-{testCaseId}\"><strong>{HttpUtility.HtmlEncode(name)}</strong></a>");
+                html.AppendLine($"<a data-toggle=\"collapse\" data-parent=\"#{modalId}-accordion\" href=\"#{modalId}-accordion-{testCaseId}\"><span class=\"searchable-content\">{HttpUtility.HtmlEncode(name)}</span></a>");
                 html.AppendLine("</h4>");
                 html.AppendLine("</div>");
                 html.AppendLine($"<div id=\"{modalId}-accordion-{testCaseId}\" class=\"panel-collapse collapse\">");
@@ -200,7 +206,7 @@ namespace HTMLReportGenerator
                     html.AppendLine("</div>");
                     html.AppendLine($"<div id=\"{modalId}-stacktrace-{testCaseId}\" class=\"panel-collapse collapse\">");
                     html.AppendLine("<div class=\"panel-body\">");
-                    html.AppendLine($"<pre>{HttpUtility.HtmlEncode(testCase.FailureMessage)}</pre>");
+                    html.AppendLine($"<pre class=\"searchable-content\">{HttpUtility.HtmlEncode(testCase.FailureMessage)}</pre>");
                     html.AppendLine("</div>");
                     html.AppendLine("</div>");
                     html.AppendLine("</div>");
@@ -209,7 +215,6 @@ namespace HTMLReportGenerator
                 html.AppendLine("</div>");
                 html.AppendLine("</div>");
                 html.AppendLine("</div>");
-                i++;
             }
 
             html.AppendLine("</div>");
@@ -267,9 +272,9 @@ namespace HTMLReportGenerator
             foreach (var key in allKeys)
             {
                 html.AppendLine("<tr>");
-                html.AppendFormat("<td>{0}</td>", HttpUtility.HtmlEncode(key));
-                html.AppendFormat("<td>{0}</td>", data["before"].TryGetValue(key, out var beforeValue) ? HttpUtility.HtmlEncode(beforeValue) : "");
-                html.AppendFormat("<td>{0}</td>", data["after"].TryGetValue(key, out var afterValue) ? HttpUtility.HtmlEncode(afterValue) : "");
+                html.AppendFormat("<td class=\"searchable-content\">{0}</td>", HttpUtility.HtmlEncode(key));
+                html.AppendFormat("<td class=\"searchable-content\">{0}</td>", data["before"].TryGetValue(key, out var beforeValue) ? HttpUtility.HtmlEncode(beforeValue) : "");
+                html.AppendFormat("<td class=\"searchable-content\">{0}</td>", data["after"].TryGetValue(key, out var afterValue) ? HttpUtility.HtmlEncode(afterValue) : "");
                 html.AppendLine("</tr>");
             }
 
@@ -343,6 +348,7 @@ namespace HTMLReportGenerator
             header.AppendLine("    </style>");
             header.AppendLine("  </head>");
             header.AppendLine("  <body>");
+
 
             return header.ToString();
         }
