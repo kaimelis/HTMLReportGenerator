@@ -8,6 +8,8 @@
         public DateTime Date { get; set; }
         public string Version { get; set; }
         public List<TestFixture> Fixtures { get; set; }
+
+        public List<ErrorInfo> ErrorList { get; set; }
     }
 
     public class TestFixture
@@ -28,5 +30,11 @@
         public string Result { get; set; }
         public string FailureMessage { get; set; }
         public Dictionary<string, Dictionary<string, Dictionary<string, string>>> Data { get; set; }
+    }
+
+    public struct ErrorInfo
+    {
+        public string Type { get; set; }
+        public string Test { get; set; }
     }
 }

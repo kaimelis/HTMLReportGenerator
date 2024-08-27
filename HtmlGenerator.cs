@@ -30,8 +30,48 @@ namespace HTMLReportGenerator
             html.AppendLine("</div>");
 
             html.AppendLine(GenerateSummaryPanel(testResults));
+            html.AppendLine(GenerateErrorGroupCollapsibleList(testResults));
             html.Append(GenerateFixtures(testResults.Fixtures));
             html.AppendLine("</div>");
+            return html.ToString();
+        }
+
+
+        private string GenerateErrorGroupCollapsibleList(TestResults testResults)
+        {
+            StringBuilder html = new StringBuilder();
+            var errorGroups = testResults.ErrorList.GroupBy(e => e.Type)
+                                         .Select(g => new { Type = g.Key, Count = g.Count(), Tests = g.Select(e => e.Test).Distinct() });
+
+            html.AppendLine("<div class=\"panel panel-danger\" id=\"errorContainer\">");
+            html.AppendLine("<div class=\"panel-heading\" style=\"cursor: pointer;\" data-toggle=\"collapse\" data-target=\"#errorsList\">");
+            html.AppendLine("<h4 class=\"panel-title\">");
+            html.AppendLine("Grouped Errors List");
+            html.AppendLine("<span class=\"pull-right\"><i class=\"glyphicon glyphicon-chevron-down\"></i></span>");
+            html.AppendLine("</h4>");
+            html.AppendLine("</div>");
+            html.AppendLine("<div class=\"panel-collapse collapse\" id=\"errorsList\">"); // Removed 'in' class to make it closed by default
+            html.AppendLine("<div class=\"panel-body\">");
+
+            foreach (var group in errorGroups)
+            {
+                html.AppendLine("<div class=\"error-group\">");
+                html.AppendLine($"<h5 class=\"error-title\">{HttpUtility.HtmlEncode(group.Type)} failed (Count: {group.Count})</h5>");
+                html.AppendLine("<p class=\"affected-tests\"><strong>Affected Tests:</strong></p>");
+                html.AppendLine("<ul>");
+                foreach (var test in group.Tests)
+                {
+                    html.AppendLine($"<li>{HttpUtility.HtmlEncode(test)}</li>");
+                }
+                html.AppendLine("</ul>");
+                html.AppendLine("</div>");
+                html.AppendLine("<hr>");
+            }
+
+            html.AppendLine("</div>"); // panel-body
+            html.AppendLine("</div>"); // panel-collapse
+            html.AppendLine("</div>"); // panel
+
             return html.ToString();
         }
 

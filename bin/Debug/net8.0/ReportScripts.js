@@ -128,4 +128,27 @@ $(document).ready(function() {
         currentSearch = this.value;
         applyFilterAndSearch();
     });
+
+    // Initialize error list panel state
+    function initializeErrorListPanel() {
+        var $panel = $('#errorContainer');
+        var $icon = $panel.find('.panel-heading i');
+        var $content = $('#errorsList');
+
+        if ($content.hasClass('in')) {
+            $icon.removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
+        } else {
+            $icon.removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
+        }
+    }
+
+    // Toggle error list panel
+    $('#errorContainer .panel-heading').click(function() {
+        var $icon = $(this).find('i');
+        $icon.toggleClass('glyphicon-chevron-down glyphicon-chevron-up');
+    });
+
+    // Call the initialization function when the page loads
+    initializeErrorListPanel();
+
 });

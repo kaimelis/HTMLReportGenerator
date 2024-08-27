@@ -913,6 +913,44 @@ pre code {
     margin-right: -15px
 }
 
+/* Error Group Panel Styles */
+#errorContainer {
+    margin-bottom: 20px;
+}
+
+#errorContainer .panel-heading {
+    background-color: #f2dede;
+    color: #a94442;
+    border-color: #ebccd1;
+}
+
+#errorContainer .panel-heading:hover {
+    background-color: #ebccd1;
+}
+
+#errorContainer .error-group {
+    margin-bottom: 15px;
+}
+
+#errorContainer .error-title {
+    color: #a94442;
+    font-weight: bold;
+}
+
+#errorContainer .error-description {
+    color: #666;
+}
+
+#errorContainer .affected-tests {
+    margin-bottom: 5px;
+}
+
+#errorContainer ul {
+    padding-left: 20px;
+}
+/* END Error Group Panel Styles */
+
+
 .col-xs-1,
 .col-sm-1,
 .col-md-1,

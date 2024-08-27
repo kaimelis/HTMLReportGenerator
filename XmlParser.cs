@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace HTMLReportGenerator
 {
@@ -21,10 +22,26 @@ namespace HTMLReportGenerator
                 Errors = int.Parse(!string.IsNullOrEmpty(doc.Attribute("failures").Value) ? doc.Attribute("failures").Value : "0"),
                 Date = DateTime.Parse(string.Format("{0}", doc.Attribute("date").Value)),
                 Version = doc.Attribute("version").Value,
-                Fixtures = ParseFixtures(doc.Descendants("test-suite").Where(x => x.Attribute("type").Value == "Test"))
+                Fixtures = ParseFixtures(doc.Descendants("test-suite").Where(x => x.Attribute("type").Value == "Test")),
+                ErrorList = ParseErrors(doc.Element("errors"))
+
             };
 
             return testResults;
+        }
+
+        private List<ErrorInfo> ParseErrors(XElement errorsElement)
+        {
+            if (errorsElement == null)
+                return new List<ErrorInfo>();
+
+            return errorsElement.Elements("error")
+                .Select(e => new ErrorInfo
+                {
+                    Type = e.Attribute("type").Value,
+                    Test = e.Attribute("test").Value
+                })
+                .ToList();
         }
 
         private List<TestFixture> ParseFixtures(IEnumerable<XElement> fixtures)
