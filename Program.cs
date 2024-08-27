@@ -1,6 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
-using HTMLReportGenerator;
-using System.Xml.Linq;
+﻿using HTMLReportGenerator;
 
 internal class Program
 {

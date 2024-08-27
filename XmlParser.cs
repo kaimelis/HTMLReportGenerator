@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
+﻿using System.Diagnostics;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace HTMLReportGenerator
 {
     public class XmlParser
     {
+        // Main method to parse the XML file and return TestResults object
         public TestResults ParseTestResults(string file)
         {
             XElement doc = XElement.Load(file);
@@ -26,12 +21,12 @@ namespace HTMLReportGenerator
                 Version = doc.Attribute("version").Value,
                 Fixtures = ParseFixtures(doc.Descendants("test-suite").Where(x => x.Attribute("type").Value == "Test"), errors),
                 ErrorList = errors
-
             };
 
             return testResults;
         }
 
+        // Parse the errors from the XML
         private List<ErrorInfo> ParseErrors(XElement errorsElement)
         {
             if (errorsElement == null)
@@ -46,6 +41,7 @@ namespace HTMLReportGenerator
                 .ToList();
         }
 
+        // Parse the test fixtures from the XML
         private List<TestFixture> ParseFixtures(IEnumerable<XElement> fixtures, List<ErrorInfo> errors)
         {
             return fixtures.OrderBy(f => f.Attribute("result").Value != "Failure" && f.Attribute("result").Value != "Error")
@@ -65,6 +61,7 @@ namespace HTMLReportGenerator
                            .ToList();
         }
 
+        // Parse individual test cases from the XML
         private List<TestCase> ParseTestCases(IEnumerable<XElement> testCases, List<ErrorInfo> errors)
         {
             return testCases.Select(testCase =>
@@ -82,6 +79,7 @@ namespace HTMLReportGenerator
             }).ToList();
         }
 
+        // Parse the XML data for each test case
         private Dictionary<string, Dictionary<string, Dictionary<string, string>>> ParseXmlData(XElement testCase, List<ErrorInfo> errors)
         {
             var data = new Dictionary<string, Dictionary<string, Dictionary<string, string>>>();
@@ -113,6 +111,7 @@ namespace HTMLReportGenerator
             return data;
         }
 
+        // Find table names in the parsed data
         private List<string> FindTableNames(Dictionary<string, string> data)
         {
             return data.Keys
@@ -121,6 +120,7 @@ namespace HTMLReportGenerator
                 .ToList();
         }
 
+        // Extract table data for a specific table name
         private Dictionary<string, string> ExtractTableData(Dictionary<string, string> data, string tableName)
         {
             var result = new Dictionary<string, string>();
@@ -149,6 +149,7 @@ namespace HTMLReportGenerator
             return result;
         }
 
+        // Parse CDATA section into a dictionary
         private Dictionary<string, string> ParseCDataSection(string cdata)
         {
             var result = new Dictionary<string, string>();
@@ -171,12 +172,14 @@ namespace HTMLReportGenerator
             return result;
         }
 
+        // Get the namespace of an element
         private string GetElementNamespace(XElement element)
         {
             var namespaces = element.Ancestors("test-suite").Where(x => x.Attribute("type").Value.ToLower() == "namespace");
             return string.Join(".", namespaces.Select(x => x.Attribute("name").Value));
         }
 
+        // Mark failed values in the data
         private void MarkFailedValue(Dictionary<string, Dictionary<string, Dictionary<string, string>>> data, string errorType)
         {
             foreach (var table in data.Values)
