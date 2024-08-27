@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -14,6 +15,7 @@ namespace HTMLReportGenerator
         public TestResults ParseTestResults(string file)
         {
             XElement doc = XElement.Load(file);
+            var errors = ParseErrors(doc.Element("errors"));
 
             var testResults = new TestResults
             {
@@ -22,8 +24,8 @@ namespace HTMLReportGenerator
                 Errors = int.Parse(!string.IsNullOrEmpty(doc.Attribute("failures").Value) ? doc.Attribute("failures").Value : "0"),
                 Date = DateTime.Parse(string.Format("{0}", doc.Attribute("date").Value)),
                 Version = doc.Attribute("version").Value,
-                Fixtures = ParseFixtures(doc.Descendants("test-suite").Where(x => x.Attribute("type").Value == "Test")),
-                ErrorList = ParseErrors(doc.Element("errors"))
+                Fixtures = ParseFixtures(doc.Descendants("test-suite").Where(x => x.Attribute("type").Value == "Test"), errors),
+                ErrorList = errors
 
             };
 
@@ -44,7 +46,7 @@ namespace HTMLReportGenerator
                 .ToList();
         }
 
-        private List<TestFixture> ParseFixtures(IEnumerable<XElement> fixtures)
+        private List<TestFixture> ParseFixtures(IEnumerable<XElement> fixtures, List<ErrorInfo> errors)
         {
             return fixtures.OrderBy(f => f.Attribute("result").Value != "Failure" && f.Attribute("result").Value != "Error")
                            .ThenBy(f => f.Attribute("name").Value)
@@ -58,23 +60,29 @@ namespace HTMLReportGenerator
                                TotalTests = fixture.Descendants("test-case").Count(),
                                FailedTests = fixture.Descendants("test-case")
                                    .Count(tc => tc.Attribute("result").Value.ToLower() == "failure" || tc.Attribute("result").Value.ToLower() == "error"),
-                               TestCases = ParseTestCases(fixture.Descendants("test-case"))
+                               TestCases = ParseTestCases(fixture.Descendants("test-case"), errors)
                            })
                            .ToList();
         }
 
-        private List<TestCase> ParseTestCases(IEnumerable<XElement> testCases)
+        private List<TestCase> ParseTestCases(IEnumerable<XElement> testCases, List<ErrorInfo> errors)
         {
-            return testCases.Select(testCase => new TestCase
+            return testCases.Select(testCase =>
             {
-                Name = testCase.Attribute("name").Value,
-                Result = testCase.Attribute("result").Value,
-                FailureMessage = testCase.Elements("failure").FirstOrDefault()?.Element("stack-trace")?.Value,
-                Data = ParseXmlData(testCase)
+                var testCaseName = testCase.Attribute("name").Value;
+                var testCaseErrors = errors.Where(e => e.Test == testCaseName).ToList();
+
+                return new TestCase
+                {
+                    Name = testCaseName,
+                    Result = testCase.Attribute("result").Value,
+                    FailureMessage = testCase.Elements("failure").FirstOrDefault()?.Element("stack-trace")?.Value,
+                    Data = ParseXmlData(testCase, testCaseErrors)
+                };
             }).ToList();
         }
 
-        private Dictionary<string, Dictionary<string, Dictionary<string, string>>> ParseXmlData(XElement testCase)
+        private Dictionary<string, Dictionary<string, Dictionary<string, string>>> ParseXmlData(XElement testCase, List<ErrorInfo> errors)
         {
             var data = new Dictionary<string, Dictionary<string, Dictionary<string, string>>>();
 
@@ -93,6 +101,12 @@ namespace HTMLReportGenerator
                         ["before"] = ExtractTableData(before, tableName),
                         ["after"] = ExtractTableData(after, tableName)
                     };
+                }
+
+                // Identify failed values
+                foreach (var error in errors)
+                {
+                    MarkFailedValue(data, error.Type);
                 }
             }
 
@@ -161,6 +175,19 @@ namespace HTMLReportGenerator
         {
             var namespaces = element.Ancestors("test-suite").Where(x => x.Attribute("type").Value.ToLower() == "namespace");
             return string.Join(".", namespaces.Select(x => x.Attribute("name").Value));
+        }
+
+        private void MarkFailedValue(Dictionary<string, Dictionary<string, Dictionary<string, string>>> data, string errorType)
+        {
+            foreach (var table in data.Values)
+            {
+                if (table["before"].ContainsKey(errorType))
+                {
+                    table["before"][errorType] += " [FAILED]";
+                    table["after"][errorType] += " [FAILED]";
+                    Debug.WriteLine($"Marked as failed: {errorType}");
+                }
+            }
         }
     }
 }

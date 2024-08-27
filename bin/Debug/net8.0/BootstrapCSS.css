@@ -964,6 +964,7 @@ pre code {
 /* END Error Group Panel Styles */
 
 
+
 .col-xs-1,
 .col-sm-1,
 .col-md-1,
@@ -7216,6 +7217,16 @@ button.close {
     td.visible-lg {
         display: table-cell !important
     }
+}
+
+/* Highlighted row in error tables */
+.table > tbody > tr.danger > td {
+    background-color: #f2dede;
+    border-color: #ebccd1;
+}
+
+.table > tbody > tr.danger:hover > td {
+    background-color: #ebcccc;
 }
 
 @media (max-width:767px) {

@@ -312,10 +312,11 @@ namespace HTMLReportGenerator
             var allKeys = data["before"].Keys.Union(data["after"].Keys).Distinct();
             foreach (var key in allKeys)
             {
-                html.AppendLine("<tr>");
+                string rowClass = data["before"].TryGetValue(key, out var beforeValue) && beforeValue.EndsWith("[FAILED]") ? "class=\"danger\"" : "";
+                html.AppendLine($"<tr {rowClass}>");
                 html.AppendFormat("<td class=\"searchable-content\">{0}</td>", HttpUtility.HtmlEncode(key));
-                html.AppendFormat("<td class=\"searchable-content\">{0}</td>", data["before"].TryGetValue(key, out var beforeValue) ? HttpUtility.HtmlEncode(beforeValue) : "");
-                html.AppendFormat("<td class=\"searchable-content\">{0}</td>", data["after"].TryGetValue(key, out var afterValue) ? HttpUtility.HtmlEncode(afterValue) : "");
+                html.AppendFormat("<td class=\"searchable-content\">{0}</td>", data["before"].TryGetValue(key, out beforeValue) ? HttpUtility.HtmlEncode(beforeValue.Replace("[FAILED]", "")) : "");
+                html.AppendFormat("<td class=\"searchable-content\">{0}</td>", data["after"].TryGetValue(key, out var afterValue) ? HttpUtility.HtmlEncode(afterValue.Replace("[FAILED]", "")) : "");
                 html.AppendLine("</tr>");
             }
 
