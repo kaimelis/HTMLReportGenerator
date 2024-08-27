@@ -932,13 +932,22 @@ pre code {
     margin-bottom: 15px;
 }
 
-#errorContainer .error-title {
+#errorContainer .error-type {
     color: #a94442;
     font-weight: bold;
+    font-size: 1.2em;
+    margin-bottom: 5px;
+}
+
+#errorContainer .error-count {
+    font-size: 1.1em;
+    color: #666;
+    margin-bottom: 10px;
 }
 
 #errorContainer .error-description {
     color: #666;
+    margin-bottom: 10px;
 }
 
 #errorContainer .affected-tests {
@@ -947,6 +956,10 @@ pre code {
 
 #errorContainer ul {
     padding-left: 20px;
+}
+
+#errorContainer li {
+    margin-bottom: 5px;
 }
 /* END Error Group Panel Styles */
 

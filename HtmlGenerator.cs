@@ -56,7 +56,8 @@ namespace HTMLReportGenerator
             foreach (var group in errorGroups)
             {
                 html.AppendLine("<div class=\"error-group\">");
-                html.AppendLine($"<h5 class=\"error-title\">{HttpUtility.HtmlEncode(group.Type)} failed (Count: {group.Count})</h5>");
+                html.AppendLine($"<h4 class=\"error-type\">{HttpUtility.HtmlEncode(group.Type)} failed. (Count: {group.Count})</h4>");
+               // html.AppendLine($"<p class=\"error-count\">Count: {group.Count}</p>");
                 html.AppendLine("<p class=\"affected-tests\"><strong>Affected Tests:</strong></p>");
                 html.AppendLine("<ul>");
                 foreach (var test in group.Tests)
