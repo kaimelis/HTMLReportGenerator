@@ -11,12 +11,14 @@ internal class Program
           XDocument generatedTest = generator.GenerateTestResults(10); // Generate results with at least 100 test suites
           generatedTest.Save("LargeTestResults.xml");*/
 
-
-        if (args.Length < 2)
+#if DEBUG
+        args = new string[] {"1.2.4"};
+#endif
+        if (args.Length < 1)
         {
-            args = new string[] { "Results.xml" , "1.2.4"};
-          //  Console.WriteLine("Usage: HTMLReportGenerator <input_xml_file> <software_version>");
-           // return;
+           
+           Console.WriteLine("Usage: HTMLReportGenerator <input_xml_file> <software_version>");
+           return;
         }
 
 
@@ -25,8 +27,8 @@ internal class Program
         var xmlParser = new XmlParser();
 
         string currentDate = DateTime.Now.ToString("yyyy-MM-dd");
-        string softwareVersion = args[1];
-        string input = args[0];
+        string softwareVersion = args[0];
+        string input = "Results.xml";
         string outputFileName = $"TestReport_{currentDate}_v{softwareVersion}.html";
 
         if (fileHandler.CheckInputAndOutputFile(input, outputFileName))
@@ -35,10 +37,9 @@ internal class Program
             string html = htmlGenerator.GenerateHtml(testResults);
             File.WriteAllText(outputFileName, html);
 #if !DEBUG
-            File.Delete(args[0]);
+            File.Delete(input);
+            Environment.Exit(0);
 #endif
-
-           // Environment.Exit(0);
         }
 
     }
