@@ -12,7 +12,7 @@ internal class Program
           generatedTest.Save("LargeTestResults.xml");*/
 
 #if DEBUG
-        args = new string[] {"1.2.4"};
+        args = new string[] {"1.8.79"};
 #endif
         if (args.Length < 1)
         {
@@ -33,9 +33,12 @@ internal class Program
 
         if (fileHandler.CheckInputAndOutputFile(input, outputFileName))
         {
+            Console.WriteLine("Started process");
             var testResults = xmlParser.ParseTestResults(input);
+            Console.WriteLine("Parsed results");
             string html = htmlGenerator.GenerateHtml(testResults);
             File.WriteAllText(outputFileName, html);
+            Console.WriteLine("Generated html");
 #if !DEBUG
             File.Delete(input);
             Environment.Exit(0);
