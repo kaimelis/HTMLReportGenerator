@@ -40,7 +40,7 @@ internal class Program
             File.WriteAllText(outputFileName, html);
             Console.WriteLine("Generated html");
 #if !DEBUG
-            File.Delete(input);
+            //File.Delete(input);
             Environment.Exit(0);
 #endif
         }
