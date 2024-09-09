@@ -154,19 +154,52 @@ namespace HTMLReportGenerator
         {
             var result = new Dictionary<string, string>();
             var lines = cdata.Split(new[] { "<br>" }, StringSplitOptions.RemoveEmptyEntries);
+            bool isReadingNote = false;
+            string currentNote = "";
 
             foreach (var line in lines)
             {
-                var parts = line.Split(new[] { " : " }, StringSplitOptions.RemoveEmptyEntries);
-                if (parts.Length == 2)
+                if (isReadingNote)
                 {
-                    result[parts[0].Trim()] = parts[1].Trim();
+                    if (line.Trim().StartsWith("##") && line.Trim().EndsWith("##"))
+                    {
+                        // End of the note section
+                        result["Note"] = currentNote.Trim();
+                        isReadingNote = false;
+                        result[line.Trim()] = string.Empty; // Add the new section header
+                    }
+                    else
+                    {
+                        currentNote += " " + line.Trim();
+                    }
                 }
-                else if (parts.Length == 1 && parts[0].Trim().StartsWith("##") && parts[0].Trim().EndsWith("##"))
+                else
                 {
-                    // This is a table name
-                    result[parts[0].Trim()] = string.Empty;
+                    var parts = line.Split(new[] { " : " }, StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length == 2)
+                    {
+                        if (parts[0].Trim() == "Note")
+                        {
+                            isReadingNote = true;
+                            currentNote = parts[1].Trim();
+                        }
+                        else
+                        {
+                            result[parts[0].Trim()] = parts[1].Trim();
+                        }
+                    }
+                    else if (parts.Length == 1 && parts[0].Trim().StartsWith("##") && parts[0].Trim().EndsWith("##"))
+                    {
+                        // This is a table name
+                        result[parts[0].Trim()] = string.Empty;
+                    }
                 }
+            }
+
+            // In case the note is at the end and there's no following "##" section
+            if (isReadingNote)
+            {
+                result["Note"] = currentNote.Trim();
             }
 
             return result;
